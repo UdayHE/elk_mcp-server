@@ -490,9 +490,10 @@ def main():
     parser = argparse.ArgumentParser(description='Query logs from ELK')
 
     # Required region argument
+    regions = list(ELKQueryClient.REGION_ENV_MAPPING.keys())
     parser.add_argument('--region', type=str, required=True,
-                        choices=['ap-south-1', 'us-east-1'],
-                        help="Region to query: 'ap-south-1' (Mumbai) or 'us-east-1'")
+                        choices=regions,
+                        help=f"Region to query: {', '.join(regions)}")
 
     # Exact match filters
     parser.add_argument('--namespace', type=str, help='Exact match filter by namespace')
