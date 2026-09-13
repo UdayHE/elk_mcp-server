@@ -114,8 +114,12 @@ Elasticsearch connection required.
 ## Layout
 
 ```
-elk_mcp/
+elk-mcp-server/
 ├── elk_query.py        # ELKQueryClient — core querying + Kibana URL builder, plus a CLI
 ├── elk_mcp_server.py   # FastMCP server exposing the 6 tools above
-└── .env                # credentials, not tracked in git (create this yourself)
+├── tests/              # pytest suite for the pure logic in both scripts above
+├── pyproject.toml      # dependencies + dev group (pytest), for `uv sync`/`uv run pytest`
+├── uv.lock             # pinned dependency versions
+├── .env.example        # template for the credentials/config below (safe to commit)
+└── .env                # actual credentials + config, not tracked in git (create this yourself)
 ```
