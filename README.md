@@ -30,23 +30,34 @@ All tools are read-only (`ToolAnnotations(readOnlyHint=True)`) and cover both
 
 Requires [`uv`](https://docs.astral.sh/uv/).
 
-Create a `.env` file next to the scripts with the credentials for each
-region you use:
+Copy `.env.example` to `.env` and fill in the credentials for each region you
+use:
 
 ```bash
+cp .env.example .env
+```
+
+```bash
+# maps each region to the env var names below — only edit this if you add
+# a region or rename a variable
+REGION_ENV_MAPPING={"ap-south-1":{...},"us-east-1":{...}}
+
 # ap-south-1 (Mumbai)
 ES_URL_MUMBAI=https://...
 ES_API_KEY_MUMBAI=...
 KIBANA_URL_MUMBAI=https://...
+KIBANA_INDEX_ID_MUMBAI=...
 
 # us-east-1
 ES_URL_US_EAST=https://...
 ES_API_KEY_US_EAST=...
 KIBANA_URL_US_EAST=https://...
+KIBANA_INDEX_ID_US_EAST=...
 ```
 
-You only need the variables for the region(s) you plan to query. Never
-commit `.env` — add it to `.gitignore`.
+You only need the credentials for the region(s) you plan to query.
+`REGION_ENV_MAPPING` and the `KIBANA_INDEX_ID_*` values aren't secrets (just
+config), but `.env` as a whole is gitignored — never commit it.
 
 ### Use as an MCP server (Claude Code / any MCP host)
 
@@ -74,6 +85,17 @@ python3 elk_query.py --region us-east-1 --namespace tenant-abc --level error --j
 ```
 
 Run `python3 elk_query.py --help` for the full flag list.
+
+## Testing
+
+```bash
+uv sync --group dev
+uv run pytest
+```
+
+Tests cover the pure logic (timestamp parsing, pattern dedup, TSV rendering,
+Kibana URL building, request construction) with dummy credentials — no live
+Elasticsearch connection required.
 
 ## Design notes
 
