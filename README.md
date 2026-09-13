@@ -97,4 +97,3 @@ elk_mcp/
 ├── elk_mcp_server.py   # FastMCP server exposing the 6 tools above
 └── .env                # credentials, not tracked in git (create this yourself)
 ```
-# elk_mcp-server

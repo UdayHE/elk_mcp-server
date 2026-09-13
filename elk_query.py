@@ -42,11 +42,13 @@ ENVIRONMENT VARIABLES:
         ES_URL_MUMBAI          Elasticsearch URL for Mumbai region (for API queries)
         ES_API_KEY_MUMBAI      API key for Mumbai region
         KIBANA_URL_MUMBAI      Kibana URL for Mumbai region (for generating browser links)
+        KIBANA_INDEX_ID_MUMBAI Kibana index pattern ID for Mumbai region (for generating browser links)
 
     For us-east-1:
         ES_URL_US_EAST         Elasticsearch URL for US East region (for API queries)
         ES_API_KEY_US_EAST     API key for US East region
         KIBANA_URL_US_EAST     Kibana URL for US East region (for generating browser links)
+        KIBANA_INDEX_ID_US_EAST Kibana index pattern ID for US East region (for generating browser links)
 
     All values are read from the .env file in the project root. Never commit
     credentials to this file or anywhere else in the repository.
@@ -94,24 +96,20 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+def _load_region_env_mapping() -> Dict[str, Dict[str, str]]:
+    """Load the region-to-environment-variable mapping from the REGION_ENV_MAPPING
+    JSON blob in the .env file."""
+    raw = os.getenv('REGION_ENV_MAPPING')
+    if not raw:
+        raise ValueError(
+            "REGION_ENV_MAPPING is not set. Please define it as a JSON object in the .env file."
+        )
+    return json.loads(raw)
+
+
 class ELKQueryClient:
-    # Region to environment variable mapping
-    REGION_ENV_MAPPING = {
-        'ap-south-1': {
-            'es_url': 'ES_URL_MUMBAI',
-            'api_key': 'ES_API_KEY_MUMBAI',
-            'kibana_url': 'KIBANA_URL_MUMBAI',
-            'kibana_index_id': '8524f713-2a3e-49ce-8089-f833305f7512',
-            'display_name': 'Mumbai'
-        },
-        'us-east-1': {
-            'es_url': 'ES_URL_US_EAST',
-            'api_key': 'ES_API_KEY_US_EAST',
-            'kibana_url': 'KIBANA_URL_US_EAST',
-            'kibana_index_id': '1086f0c0-40c4-11ed-b323-41c082c9d9de',
-            'display_name': 'US East'
-        }
-    }
+    # Region to environment variable mapping (loaded from .env)
+    REGION_ENV_MAPPING = _load_region_env_mapping()
 
     def __init__(self, region: str):
         if region not in self.REGION_ENV_MAPPING:
@@ -123,7 +121,7 @@ class ELKQueryClient:
         self.es_url = os.getenv(region_config['es_url'])
         self.api_key = os.getenv(region_config['api_key'])
         self.kibana_url = os.getenv(region_config['kibana_url'])
-        self.kibana_index_id = region_config['kibana_index_id']
+        self.kibana_index_id = os.getenv(region_config['kibana_index_id'])
 
         if not self.es_url or not self.api_key:
             raise ValueError(
@@ -131,8 +129,14 @@ class ELKQueryClient:
                 f"Please set {region_config['es_url']} and {region_config['api_key']} in .env file"
             )
 
-        if not self.kibana_url:
-            print(f"Warning: {region_config['kibana_url']} not set. Kibana browser links will not be generated.")
+        if not self.kibana_url or not self.kibana_index_id:
+            missing = [
+                var for var, val in (
+                    (region_config['kibana_url'], self.kibana_url),
+                    (region_config['kibana_index_id'], self.kibana_index_id),
+                ) if not val
+            ]
+            print(f"Warning: {', '.join(missing)} not set. Kibana browser links will not be generated.")
 
     def _parse_datetime(self, dt_string: str) -> datetime:
         """
@@ -357,7 +361,7 @@ class ELKQueryClient:
         Returns:
             Kibana URL string that can be opened in a browser, or None if Kibana URL not configured
         """
-        if not self.kibana_url:
+        if not self.kibana_url or not self.kibana_index_id:
             return None
         # Calculate time range
         if start_time:
