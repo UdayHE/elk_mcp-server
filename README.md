@@ -1,7 +1,8 @@
 # elk-mcp-server
 
 An MCP (Model Context Protocol) server that lets an AI coding agent (Claude
-Code or any other MCP host) read Elastic Cloud logs across two regions —
+Code or any other MCP host) read Elastic Cloud logs across multiple regions
+(currently `ap-south-1` Mumbai and `us-east-1`, configured in `.env`) —
 read-only, nothing can be changed or deleted. A standalone CLI is included
 for humans who want to run the same queries by hand.
 
