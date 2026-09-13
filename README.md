@@ -1,16 +1,20 @@
 # elk-mcp-server
 
-An MCP (Model Context Protocol) server that gives an AI coding agent
-(Claude Code or any other MCP host) read-only access to Elastic Cloud logs
-across two regions, plus a standalone CLI for humans.
+An MCP (Model Context Protocol) server that lets an AI coding agent (Claude
+Code or any other MCP host) read Elastic Cloud logs across two regions —
+read-only, nothing can be changed or deleted. A standalone CLI is included
+for humans who want to run the same queries by hand.
 
 ## Why
 
-Wrapping a CLI script directly means every agent session pays a fixed "read
-the source to learn the flags" tax, then shells out and re-parses
-pretty-printed text. This server exposes the same querying logic as six
-purpose-built MCP tools instead: Claude sees a compact schema, never the
-implementation, and gets back compact TSV rather than raw JSON.
+An agent could just shell out to the CLI script directly, but that's
+expensive in tokens: it has to read the whole script to learn the flags,
+then parse pretty-printed, verbose text back out of every response.
+
+This server avoids both costs. It wraps the same querying logic in six
+purpose-built MCP tools, so the agent sees a short, ready-made list of
+tools instead of a script to read, and gets back compact TSV rows instead
+of raw JSON. Less text in means less text (and cost) out.
 
 ## Tools
 
